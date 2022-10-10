@@ -8,8 +8,6 @@ import {
   FormControl,
   FormArray,
   NgForm,
-  
-
 } from '@angular/forms';
 /**
  * @title Basic expansion panel
@@ -20,21 +18,21 @@ import { listenOnPlayer } from '@angular/animations/browser/src/render/shared';
 import { MatTableDataSource } from '@angular/material';
 @Component({
   selector: 'expansion-overview-example',
-  
+
   templateUrl: 'expansion-overview-example.html',
   styleUrls: ['expansion-overview-example.css'],
 })
 export class ExpansionOverviewExample {
-  data:Array<{}>=[]
- 
-  displayedColumns=[];
+  data: Array<{}> = [];
+
+  displayedColumns = [];
   rows: FormArray;
   arr: Arr = { Factors: '0', Levels: '0' };
   addForm: FormGroup;
   panelOpenState: boolean = false;
   flag: boolean = false;
   obj: any;
-  Gen_flag:boolean=false;
+  Gen_flag: boolean = false;
   Number_of_factor: string = '0';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
@@ -59,50 +57,64 @@ export class ExpansionOverviewExample {
   }
 
   onSave() {
-    this.Gen_flag=false;
+    this.Gen_flag = false;
     if (Number(this.arr.Factors) != 0) {
       this.flag = true;
     } else {
       this.flag = false;
     }
-    for(let index=0;index<Number(this.arr.Factors);index++)
-    {
-      this.displayedColumns.push(String(index))
+    for (let index = 0; index < Number(this.arr.Factors); index++) {
+      this.displayedColumns.push(String(index));
     }
     console.log(this.displayedColumns);
+  }
+  generate() {
+    let count = {};
+    for (let index = 0; index < this.rows.value.length; index++) {
+      let s = this.rows.value[index]['Level_values'].split(',').length;
+      if (s in count) {
+        let temp = count[s];
+        temp = temp + 1;
+        count[s] = temp;
+      } else {
+        count[s] = 1;
+      }
+    }
+    console.log('count dic is :');
+    console.log(count);
+    let str = '';
+    for (let key in count) {
+      str += key;
+      str = str + '^' + String(count[key]);
+      str += ' ';
+    }
+    str = str.slice(0, str.length - 1);
 
     this.http
       .post('http://127.0.0.1:8000/', {
-        Factors: this.arr.Factors,
-        Levels: this.arr.Levels,
+        pattern: str,
       })
       .subscribe((data) => (this.obj = data));
     console.log(this.obj);
-  }
-  generate(){
-    
-     this.Gen_flag=true;
-     const s="0000 0121 0212 1022 1110 1201 2011 2102 2220"
-     let list=s.split(" ")
-     
-     console.log(this.displayedColumns)
-     const runs=list.length
-     for (let index=0;index<runs;index++)
-     {
+    if (this.obj) {
+      this.Gen_flag = true;
+    }
 
-
-       let d={}
-       for( let j=0;j<list[index].length;j++)
-       {  
-          d[String(j)]=this.rows.value[j]["Level_values"].split(",")[list[index][j]]
-       }
-       this.data.push(d)
-     }
-     console.log(this.data)
-     
-
-
-    
+    const s = this.obj.result;
+    console.log(s);
+    let list = s.split('\n');
+    console.log(list);
+    console.log(this.displayedColumns);
+    const runs = list.length;
+    for (let index = 0; index < runs; index++) {
+      let d = {};
+      for (let j = 0; j < list[index].length; j++) {
+        d[String(j)] =
+          this.rows.value[j]['Level_values'].split(',')[list[index][j]];
+      }
+      this.data.push(d);
+    }
+    console.log(this.data);
   }
   onAddRow() {
     this.rows.push(this.createItemFormGroup());
