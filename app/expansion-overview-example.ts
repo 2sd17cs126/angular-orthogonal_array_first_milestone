@@ -24,9 +24,10 @@ import { MatTableDataSource } from '@angular/material';
 })
 export class ExpansionOverviewExample {
   data: Array<{}> = [];
-
+  onscreen=[]
   displayedColumns = [];
   rows: FormArray;
+  map_col={}
   arr: Arr = { Factors: '0', Levels: '0' };
   addForm: FormGroup;
   panelOpenState: boolean = false;
@@ -90,6 +91,12 @@ export class ExpansionOverviewExample {
     }
     str = str.slice(0, str.length - 1);
 
+    for (let index = 0; index < this.rows.value.length; index++) {
+     let temp=this.rows.value[index]['Factor_name']
+     this.onscreen.push(temp)
+     this.map_col[this.displayedColumns[index]]=this.onscreen[index]
+    }
+    console.log("onscreen:"+this.map_col)
     this.http
       .post('http://127.0.0.1:8000/', {
         pattern: str,
